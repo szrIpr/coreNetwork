@@ -5,13 +5,13 @@
 
 class Matrix {
 private:
-    float* m_data = nullptr;
     int m_rows = 0;
     int m_cols = 0;
+    float* m_data = nullptr;
 
 public:
 
-    Matrix(const int row = 0, const int col = 0) : m_rows(row), m_cols(col), m_data(new float[row*col]()) {}
+    Matrix(const int row, const int col) : m_rows(row), m_cols(col), m_data(new float[row*col]()) {}
 
     Matrix(const std::initializer_list<std::initializer_list<const float>> list) : Matrix(list.size(), list.begin()->size())
     {
@@ -39,7 +39,6 @@ public:
     {
         if(this != &other)
         {
-
             if(m_rows*m_cols != other.m_rows*other.m_cols)
             {
                 delete[] m_data;
@@ -83,85 +82,93 @@ public:
                 (*this)[i][j] = f((*this)[i][j]);
     }
 
-    void operator*=(Matrix& other)
+    void operator*=(const Matrix& other)
     {
-        if(this->rows() != other.rows() || this->cols() != other.cols()) throw "Matrices should be the same size.";
+        if(rows() != other.rows() || cols() != other.cols()) throw "Matrices should be the same size.";
 
-        for(int i = 0; i < this->rows(); i++)
-            for(int j = 0; j < this->cols(); j++)
+        for(int i = 0; i < rows(); i++)
+            for(int j = 0; j < cols(); j++)
                 (*this)[i][j] *= other[i][j];
     }
-    void operator/=(Matrix& other)
+    void operator*=(float val)
     {
-        if(this->rows() != other.rows() || this->cols() != other.cols()) throw "Matrices should be the same size.";
-
-        for(int i = 0; i < this->rows(); i++)
-            for(int j = 0; j < this->cols(); j++)
-                (*this)[i][j] /= other[i][j];
+        for(int i = 0; i < rows(); i++)
+            for(int j = 0; j < cols(); j++)
+                (*this)[i][j] *= val;
     }
-    void operator+=(Matrix& other)
+    void operator+=(const Matrix& other)
     {
-        if(this->rows() != other.rows() || this->cols() != other.cols()) throw "Matrices should be the same size.";
+        if(rows() != other.rows() || cols() != other.cols()) throw "Matrices should be the same size.";
 
-        for(int i = 0; i < this->rows(); i++)
-            for(int j = 0; j < this->cols(); j++)
+        for(int i = 0; i < rows(); i++)
+            for(int j = 0; j < cols(); j++)
                 (*this)[i][j] += other[i][j];
     }
-    void operator-=(Matrix& other)
+    void operator-=(const Matrix& other)
     {
-        if(this->rows() != other.rows() || this->cols() != other.cols()) throw "Matrices should be the same size.";
+        if(rows() != other.rows() || cols() != other.cols()) throw "Matrices should be the same size.";
 
-        for(int i = 0; i < this->rows(); i++)
-            for(int j = 0; j < this->cols(); j++)
+        for(int i = 0; i < rows(); i++)
+            for(int j = 0; j < cols(); j++)
                 (*this)[i][j] -= other[i][j];
     }
 
-    Matrix operator*(Matrix& other)
+    Matrix operator*(const Matrix& other)
     {
-        if(this -> cols() != other.rows()) throw "The number of columns of the first matrix must equal the number of rows of the second matrix.";
+        Matrix newMat(*this);
 
-        Matrix newMat(this->rows(), other.cols());
-
-        for(int i = 0; i < newMat.rows(); i++)
-            for(int j = 0; j < newMat.cols(); j++)
-                for(int k = 0; k < this->cols(); k++)
-                    newMat[i][j] += (*this)[i][k] * other[k][j];
+        newMat *= other;
 
         return newMat;
     }
 
-    Matrix operator+(Matrix& other)
+    Matrix operator*(float val)
     {
-        if(this->rows() != other.rows() || this->cols() != other.cols()) throw "Matrices should be the same size.";
+        Matrix newMat(*this);
 
-        Matrix newMat(this->rows(), this->cols());
-
-        for(int i = 0; i < newMat.rows(); i++)
-            for(int j = 0; j < newMat.cols(); j++)
-                newMat[i][j] += (*this)[i][j] + other[i][j];
-
-        return newMat;
-    }
-    Matrix operator-(Matrix& other)
-    {
-        if(this->rows() != other.rows() || this->cols() != other.cols()) throw "Matrices should be the same size.";
-
-        Matrix newMat(this->rows(), this->cols());
-
-        for(int i = 0; i < newMat.rows(); i++)
-            for(int j = 0; j < newMat.cols(); j++)
-                newMat[i][j] += (*this)[i][j] - other[i][j];
+        newMat *= val;
 
         return newMat;
     }
 
-    int rows() { return m_rows; }
-    int cols() { return m_cols; }
+    Matrix operator+(const Matrix& other)
+    {
+        Matrix newMat(*this);
 
-    float* operator[](const int i) { return &m_data[i*m_cols]; }
+        newMat += other;
+
+        return newMat;
+    }
+    Matrix operator-(const Matrix& other)
+    {
+        Matrix newMat(*this);
+
+        newMat -= other;
+
+        return newMat;
+    }
+
+    int const rows() const { return m_rows; }
+    int const cols() const { return m_cols; }
+
+    float* operator[](int i) { return &m_data[i*m_cols]; }
+    const float* operator[](int i) const { return &m_data[i*m_cols]; }
 
     ~Matrix() { delete[] m_data; }
 };
+
+Matrix dot(const Matrix& a, const Matrix& b) {
+    if(a.cols() != b.rows()) throw "The number of columns of the first matrix must equal the number of rows of the second matrix.";
+
+    Matrix newMat(a.rows(), b.cols());
+
+    for(int i = 0; i < newMat.rows(); i++)
+        for(int j = 0; j < newMat.cols(); j++)
+            for(int k = 0; k < a.cols(); k++)
+                newMat[i][j] += a[i][k] * b[k][j];
+
+    return newMat;
+}
 
 Matrix transpose(Matrix& mat) {
     Matrix newMat(mat.cols(), mat.rows());
@@ -173,10 +180,22 @@ Matrix transpose(Matrix& mat) {
     return newMat;
 }
 
-void print(Matrix& mat) {
+template<typename func>
+Matrix map(const Matrix& mat, func f)
+{
+    Matrix newMat(mat);
+
+    for(int i = 0; i < newMat.rows(); i++)
+        for(int j = 0; j < newMat.cols(); j++)
+            newMat[i][j] = f(mat[i][j]);
+
+    return newMat;
+}
+
+void print(const Matrix& mat) {
     for(int i = 0; i < mat.rows(); i++) {
-        std::cout << "\n";
         for(int j = 0; j < mat.cols(); j++)
             std::cout << mat[i][j] << " ";
+        std::cout << "\n";
     }
 }
