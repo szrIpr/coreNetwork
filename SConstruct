@@ -1,0 +1,1 @@
+Program(target = "coreNetwork", source = Glob("src/*.cpp"), parse_flags = "-Iinclude", CCFLAGS = ["-O2", "-EHsc"])
