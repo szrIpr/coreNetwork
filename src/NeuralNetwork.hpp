@@ -55,6 +55,7 @@ public:
             output += biases[i];
             output.map(sigmoid);
         }
+
         output = dot(weights.back(), output);
         output += biases.back();
         output.map(sigmoid);
@@ -62,7 +63,7 @@ public:
         return output;
     }
 
-    void backward(Matrix& input, Matrix& target)
+    void backward(const Matrix& input, const Matrix& target)
     {
         std::vector<Matrix> acts;
         acts.reserve(weights.size()+1);
@@ -75,6 +76,7 @@ public:
             acts.back() += biases[i];
             acts.back().map(sigmoid);
         }
+
         acts.emplace_back(dot(weights.back(), acts.back()));
         acts.back() += biases.back();
         acts.back().map(sigmoid);

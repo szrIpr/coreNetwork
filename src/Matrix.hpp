@@ -13,9 +13,10 @@ public:
 
     Matrix(const int row, const int col) : m_rows(row), m_cols(col), m_data(new float[row*col]()) {}
 
-    Matrix(const std::initializer_list<std::initializer_list<const float>> list) : Matrix(list.size(), list.begin()->size())
+    Matrix(const std::initializer_list<std::initializer_list<float>> list) : Matrix(list.size(), list.begin()->size())
     {
-        std::copy_n(list.begin()->begin(), m_rows*m_cols, m_data);
+	for(int i = 0; i < m_rows; i++)
+	    std::copy((list.begin()+i)->begin(), (list.begin()+i)->end(), m_data + (i * m_cols));
     }
 
     Matrix(const int row, const int col, const float val) : Matrix(row, col)
@@ -90,12 +91,14 @@ public:
             for(int j = 0; j < cols(); j++)
                 (*this)[i][j] *= other[i][j];
     }
+
     void operator*=(float val)
     {
         for(int i = 0; i < rows(); i++)
             for(int j = 0; j < cols(); j++)
                 (*this)[i][j] *= val;
     }
+
     void operator+=(const Matrix& other)
     {
         if(rows() != other.rows() || cols() != other.cols()) throw "Matrices should be the same size.";
@@ -104,6 +107,7 @@ public:
             for(int j = 0; j < cols(); j++)
                 (*this)[i][j] += other[i][j];
     }
+
     void operator-=(const Matrix& other)
     {
         if(rows() != other.rows() || cols() != other.cols()) throw "Matrices should be the same size.";
@@ -113,7 +117,7 @@ public:
                 (*this)[i][j] -= other[i][j];
     }
 
-    Matrix operator*(const Matrix& other)
+    Matrix operator*(const Matrix& other) const
     {
         Matrix newMat(*this);
 
@@ -122,7 +126,7 @@ public:
         return newMat;
     }
 
-    Matrix operator*(float val)
+    Matrix operator*(float val) const
     {
         Matrix newMat(*this);
 
@@ -131,7 +135,7 @@ public:
         return newMat;
     }
 
-    Matrix operator+(const Matrix& other)
+    Matrix operator+(const Matrix& other) const
     {
         Matrix newMat(*this);
 
@@ -139,7 +143,8 @@ public:
 
         return newMat;
     }
-    Matrix operator-(const Matrix& other)
+
+    Matrix operator-(const Matrix& other) const
     {
         Matrix newMat(*this);
 
@@ -148,8 +153,8 @@ public:
         return newMat;
     }
 
-    int const rows() const { return m_rows; }
-    int const cols() const { return m_cols; }
+    int rows() const { return m_rows; }
+    int cols() const { return m_cols; }
 
     float* operator[](int i) { return &m_data[i*m_cols]; }
     const float* operator[](int i) const { return &m_data[i*m_cols]; }
